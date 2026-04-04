@@ -1,5 +1,5 @@
+import 'package:agop/features/auth/login_page.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class GetStartedPage extends StatelessWidget {
@@ -83,7 +83,10 @@ class GetStartedPage extends StatelessWidget {
                       height: 70,
                       child: ElevatedButton(
                         onPressed: () {
-        
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => LoginPage() ),
+                          );
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Theme.of(context).primaryColor,        // uses the primary color in the app_theme.dart

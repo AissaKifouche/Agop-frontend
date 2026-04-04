@@ -19,7 +19,7 @@ class AgopTheme {
     textTheme: const TextTheme(
       displayLarge: TextStyle(
         color: Color(0xFF1C1208),   // dark coffee color used for writing in the cards
-        fontWeight: FontWeight.bold,
+        fontSize: 36,
       )
     ),
   );
