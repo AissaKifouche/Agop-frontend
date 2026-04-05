@@ -1,37 +1,30 @@
-import 'package:agop/features/auth/sign_up_page.dart';
 import 'package:flutter/material.dart';
 import 'package:agop/shared/widgets/agop_text_field.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:simple_icons/simple_icons.dart';
 
-class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+
+class SignUpPage extends StatefulWidget {
+  const SignUpPage({super.key});
 
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  State<SignUpPage> createState() => _SignUpPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _SignUpPageState extends State<SignUpPage> {
 
-  //controllers to manage user input
-  final TextEditingController _identifierConroller = TextEditingController();
+  final TextEditingController _userNameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _confirmPasswordController = TextEditingController();
   bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
   bool _isRememberMeChecked = false;
-
-
-  @override
-  void dispose() {
-
-    _identifierConroller.dispose();
-    _passwordController.dispose();
-    super.dispose();
-  }
-
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Center(
         child: SafeArea(
@@ -72,15 +65,27 @@ class _LoginPageState extends State<LoginPage> {
 
                         //a space
                         SizedBox(height: 32,),
-                        
+
                         //username field using the customised input field AgopTextField
                         AgopTextField(
-                            label: "username, e-mail or phone NUMBER",
-                            hintText: "enter your identifier",
-                          controller: _identifierConroller,
+                          label: "email",
+                          hintText: "enter your email",
+                          controller: _emailController,
                         ),
 
                         SizedBox(height: 24,),
+
+                        //the username field
+
+                        AgopTextField(
+                          label: "username",
+                          hintText: "choose a username",
+                          controller: _userNameController,
+                        ),
+
+                        SizedBox(height: 24,),
+
+
                         //the password field
                         AgopTextField(
                           label: "password",
@@ -104,15 +109,38 @@ class _LoginPageState extends State<LoginPage> {
                         //space
                         SizedBox(height: 24,),
 
+                        //the confirm password field
+
+                        AgopTextField(
+                          label: "confirm password",
+                          hintText: "••••••••",
+                          controller: _confirmPasswordController,
+                          isPassword: _obscureConfirmPassword,
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              _obscureConfirmPassword ? Icons.visibility_off : Icons.visibility,
+                              color: Colors.grey,
+                              size: 20,
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                _obscureConfirmPassword = !_obscureConfirmPassword;
+                              });
+                            },
+                          ),
+                        ),
+                        SizedBox(height: 24,),
+
                         Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          mainAxisAlignment: MainAxisAlignment.start,
                           children: [
+                            SizedBox(width: 8,),
                             SizedBox(
                               height: 20,
                               width: 20,
                               child: Checkbox(
                                 value: _isRememberMeChecked,
-                                onChanged: (val) {
+                                onChanged: (bool? val) {
                                   setState(() {
                                     _isRememberMeChecked = !_isRememberMeChecked;
                                   });
@@ -120,30 +148,14 @@ class _LoginPageState extends State<LoginPage> {
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
                               ),
                             ),
+                            SizedBox(width: 8,),
                             Text("remember me", style: TextStyle(color: Color(0xFF3F4942)),),
-                            TextButton(
-                              child: Text("Forgot password?", style: TextStyle(color: Color(0xFF0B613B)),),
-                              onPressed: (){
-                                //to handle later
-                                //
-                                //
-                                //
-                                //
-                                //
-                                //
-                                //
-                                //
-                                //
-                                //
-                                //don't forget
-                              },
-                            ),
                           ],
                         ),
 
                         SizedBox(height: 24,),
 
-                        //the button login
+                        //the button create account
                         SizedBox(
                           width: double.infinity,
                           height: 60,
@@ -170,7 +182,7 @@ class _LoginPageState extends State<LoginPage> {
                               shape: RoundedRectangleBorder(borderRadius: BorderRadiusGeometry.circular(40)),
                             ),
                             child: Text(
-                              "LOG IN",
+                              "CREATE ACCOUNT",
                               style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 18,
@@ -178,111 +190,6 @@ class _LoginPageState extends State<LoginPage> {
                             ),
                           ),
                         ), // the button
-
-
-                        //SizedBox(height: 24,),
-
-
-                        //the divider
-                        /*
-                        Row(
-                          children: [
-                            Expanded(child: Divider(color: Color(0xFFBFC9BF),)),
-                            Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 16),
-                              child: Text(
-                                "OR CONTINUE WITH",
-                                style: TextStyle(
-                                  color: Color(0xFF3F4942),
-                                  fontSize: 12
-                                ),
-                              ),
-                            ),
-                            Expanded(child: Divider(color: Color(0xFFBFC9BF),)),
-                          ],
-                        ),*/
-
-                        //SizedBox(height: 32,),
-
-
-                        /*
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-
-
-                            //google button
-                            Expanded(
-                              child: OutlinedButton.icon(
-                                onPressed: () {
-                                  //to handle later
-                                  //
-                                  //
-                                  //
-                                  //
-                                  //
-                                  //
-                                  //
-                                  //
-                                  //
-                                  //
-                                  //
-                                },
-                                icon: Icon(SimpleIcons.google),
-                                label: Text(
-                                  "Google",
-                                  style: TextStyle(
-                                    color: Color(0xFF1D1C16),
-                                    fontSize: 14,
-                                  ),
-                                ),
-                                style: OutlinedButton.styleFrom(
-                                  side: BorderSide(color: Color(0xFFBFC9BF)),
-                                  padding: EdgeInsets.symmetric(vertical: 16),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadiusGeometry.circular(40),
-                                  )
-                                ),
-                              ),
-                            ),
-
-
-                            //facbk button
-                            Expanded(
-                              child: OutlinedButton.icon(
-                                onPressed: () {
-                                  //to handle later
-                                  //
-                                  //
-                                  //
-                                  //
-                                  //
-                                  //
-                                  //
-                                  //
-                                  //
-                                  //
-                                  //
-                                },
-                                icon: Icon(SimpleIcons.facebook),
-                                label: Text(
-                                  "Facebook",
-                                  style: TextStyle(
-                                    color: Color(0xFF1D1C16),
-                                    fontSize: 14,
-                                  ),
-                                ),
-                                style: OutlinedButton.styleFrom(
-                                    side: BorderSide(color: Color(0xFFBFC9BF)),
-                                    padding: EdgeInsets.symmetric(vertical: 16),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadiusGeometry.circular(40),
-                                    )
-                                ),
-                              ),
-                            )
-                          ],
-                        ),*/
 
                         SizedBox(height: 24,),
 
@@ -298,22 +205,19 @@ class _LoginPageState extends State<LoginPage> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      "don't have an account? ",
+                      "already have an account?",
                       style: TextStyle(
                         fontSize: 16,
                         color: Color(0xFF3F4942),
                       ),
                     ),
-                    
+
                     TextButton(
                       onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => SignUpPage() ),
-                        );
+                        Navigator.pop(context);
                       },
                       child: Text(
-                        "Sign Up",
+                        "Log In",
                         style: TextStyle(
                           fontSize: 16,
                           color: Theme.of(context).primaryColor,
