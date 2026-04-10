@@ -3,6 +3,8 @@ import 'package:agop/shared/widgets/agop_text_field.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:simple_icons/simple_icons.dart';
 
+import '../home/home_page.dart';
+
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -29,7 +31,7 @@ class _SignUpPageState extends State<SignUpPage> {
       body: Center(
         child: SafeArea(
           child: SingleChildScrollView(
-            padding: EdgeInsets.symmetric(horizontal: 35, vertical: 40),
+            padding: EdgeInsets.symmetric(horizontal: 15, vertical: 40),
             child: Column(
               children: [ // contains the element : logo, text fields ...
 
@@ -161,20 +163,10 @@ class _SignUpPageState extends State<SignUpPage> {
                           height: 60,
                           child: ElevatedButton(
                             onPressed: (){
-                              //to handle later
-                              //
-                              //
-                              //
-                              //
-                              //
-                              //
-                              //
-                              //
-                              //
-                              //
-                              //
-                              //
-                              //
+                              Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(builder: (context) => HomePage())
+                              );
                             },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Theme.of(context).primaryColor,

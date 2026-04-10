@@ -15,7 +15,6 @@ class GetStartedPage extends StatelessWidget {
         bottom: false,
         child: Stack(
           children: [
-            //the bg image
             Container(
               decoration: BoxDecoration(
                 image: DecorationImage(
@@ -24,97 +23,108 @@ class GetStartedPage extends StatelessWidget {
                 ),
               ),
             ),
-        
-            // the dark overlay on the image
+
             Container(
               color: Colors.black.withValues(alpha: 0.64),
             ),
-        
-            //the other contents: text and button
-            SafeArea(
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 40),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-        
-                  children: [
-        
-                    //the logo
-                    SvgPicture.asset("assets/images/AgopLogoWhite.svg"),
-        
-                    // a space
-                    Center(
-                      child: SizedBox(
-                        height: 300,
-                      ),
-                    ),
-        
-                    //the text
-                    Center(
-                      child: Text(
-                        "WELCOME TO AGOP",
-                        style: TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
+
+            SingleChildScrollView(
+
+            child: Column(
+              children: [
+
+                    // the dark overlay on the image
+
+
+                    //the other contents: text and button
+                    SafeArea(
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 40),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+
+                          children: [
+                            SizedBox(height: 24,),
+
+                            //the logo
+                            SvgPicture.asset(
+                                "assets/images/AgopLogoWhite.svg",
+
+                            ),
+
+                            // a space
+                              SizedBox(
+                                height: 250,
+                              ),
+
+                            //the text
+                            Center(
+                              child: Text(
+                                "WELCOME TO AGOP",
+                                style: TextStyle(
+                                  fontSize: 28,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                            Center(
+                              child: Text(
+                                "AI powered farming",
+                                style: TextStyle(
+                                  fontSize: 28,
+                                  fontWeight: FontWeight(300),
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+
+                            //a sized box to separate between the text and the button
+                            SizedBox(
+                              height: 40,
+                            ),
+
+                            //the button get started
+                            SizedBox(
+                              width: double.infinity,
+                              height: 70,
+                              child: ElevatedButton(
+                                onPressed: () {
+                                  Navigator.pushReplacement(
+                                    context,
+                                    MaterialPageRoute(builder: (context) => LoginPage() ),
+                                  );
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Theme.of(context).primaryColor,        // uses the primary color in the app_theme.dart
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(37)
+                                  )
+                                ),
+                                child: Text(
+                                  "GET STARTED",
+                                  style: TextStyle(
+                                    fontSize: 24,
+                                    fontWeight: FontWeight(600),
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ),
+
+                            // a sized box to get the button far from the bottom
+                            SizedBox(
+                              height: 40,
+                            ),
+                          ],
                         ),
                       ),
                     ),
-                    Center(
-                      child: Text(
-                        "AI powered farming",
-                        style: TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight(300),
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-        
-                    //a sized box to separate between the text and the button
-                    SizedBox(
-                      height: 40,
-                    ),
-        
-                    //the button get started
-                    SizedBox(
-                      width: double.infinity,
-                      height: 70,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => LoginPage() ),
-                          );
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Theme.of(context).primaryColor,        // uses the primary color in the app_theme.dart
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(37)
-                          )
-                        ),
-                        child: Text(
-                          "GET STARTED",
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight(600),
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ),
-        
-                    // a sized box to get the button far from the bottom
-                    SizedBox(
-                      height: 40,
-                    ),
-                  ],
-                ),
-              ),
+              ],
             ),
-        
-          ],
+          ),
+          ]
         ),
       ),
     );

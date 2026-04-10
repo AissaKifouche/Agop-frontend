@@ -1,4 +1,5 @@
 import 'package:agop/features/auth/sign_up_page.dart';
+import 'package:agop/features/home/home_page.dart';
 import 'package:flutter/material.dart';
 import 'package:agop/shared/widgets/agop_text_field.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -36,7 +37,7 @@ class _LoginPageState extends State<LoginPage> {
       body: Center(
         child: SafeArea(
           child: SingleChildScrollView(
-            padding: EdgeInsets.symmetric(horizontal: 35, vertical: 40),
+            padding: EdgeInsets.symmetric(horizontal: 15, vertical: 40),
             child: Column(
               children: [ // contains the element : logo, text fields ...
 
@@ -75,7 +76,7 @@ class _LoginPageState extends State<LoginPage> {
                         
                         //username field using the customised input field AgopTextField
                         AgopTextField(
-                            label: "username, e-mail or phone NUMBER",
+                            label: "username or e-mail",
                             hintText: "enter your identifier",
                           controller: _identifierConroller,
                         ),
@@ -148,21 +149,13 @@ class _LoginPageState extends State<LoginPage> {
                           width: double.infinity,
                           height: 60,
                           child: ElevatedButton(
+
+                            //takes to the home page
                             onPressed: (){
-                              //to handle later
-                              //
-                              //
-                              //
-                              //
-                              //
-                              //
-                              //
-                              //
-                              //
-                              //
-                              //
-                              //
-                              //
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(builder: (context) => HomePage())
+                              );
                             },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Theme.of(context).primaryColor,
