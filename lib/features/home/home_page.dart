@@ -15,8 +15,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  
-  int _selectedIndex = 0;
+
   Position? _currentPosition;
   bool _isPositionLoading = true;
   String _locationName = "";
@@ -55,21 +54,11 @@ class _HomePageState extends State<HomePage> {
     super.initState();
     _fetchLocation();
   }
-
-
-  
-  void _onItemTapped (int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-  }
   
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: SafeArea(
-        child: SingleChildScrollView(
+    return SafeArea(
+       child: SingleChildScrollView(
           child: Column(
             children: [
               Container(
@@ -727,57 +716,10 @@ class _HomePageState extends State<HomePage> {
                   ],
                 ),
               ),
-              
             ],
           ),
         ),
-      ),
+      );
 
-
-      bottomNavigationBar: BottomNavigationBar(
-
-        currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
-        selectedItemColor: Color(0xFF5BBF86),
-        backgroundColor: Color(0xFF1C1208),
-        unselectedItemColor: Colors.grey,
-        showSelectedLabels: true,
-        showUnselectedLabels: true,
-        type: BottomNavigationBarType.fixed,
-        items: [
-          BottomNavigationBarItem(
-            icon: SvgPicture.asset(
-                "assets/images/homeIcon.svg",
-              colorFilter: ColorFilter.mode(
-                _selectedIndex == 0 ? Color(0xFF5BBF86) : Colors.grey,
-                BlendMode.srcIn,
-              ),
-            ),
-            label: "Home",
-          ),
-          BottomNavigationBarItem(
-            icon: SvgPicture.asset(
-                "assets/images/CropsIcon.svg",
-              colorFilter: ColorFilter.mode(
-                _selectedIndex == 1 ? Color(0xFF5BBF86) : Colors.grey,
-                BlendMode.srcIn,
-              ),
-            ),
-            label: "Crops",
-          ),
-          BottomNavigationBarItem(
-            icon: SvgPicture.asset(
-                "assets/images/TasksIcon.svg",
-              colorFilter: ColorFilter.mode(
-                _selectedIndex == 2 ? Color(0xFF5BBF86) : Colors.grey,
-                BlendMode.srcIn,
-              ),
-            ),
-            label: "Tasks",
-          )
-        ],
-
-      ),
-    );
   }
 }

@@ -31,6 +31,7 @@ class GetStartedPage extends StatelessWidget {
             SingleChildScrollView(
 
             child: Column(
+
               children: [
 
                     // the dark overlay on the image
@@ -114,9 +115,7 @@ class GetStartedPage extends StatelessWidget {
                             ),
 
                             // a sized box to get the button far from the bottom
-                            SizedBox(
-                              height: 40,
-                            ),
+
                           ],
                         ),
                       ),
