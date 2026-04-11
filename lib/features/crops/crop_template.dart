@@ -83,6 +83,7 @@ class CropTemplate {
       statusMessage: "looking healthy",
       statusColor: Colors.green,
       progressBarColor: Colors.green,
+      id: DateTime.now().microsecondsSinceEpoch.toString(),
     );
   }
 
