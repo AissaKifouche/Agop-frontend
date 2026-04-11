@@ -1,9 +1,8 @@
 import 'package:agop/features/auth/sign_up_page.dart';
-import 'package:agop/features/home/home_page.dart';
+import 'package:agop/main_shell.dart';
 import 'package:flutter/material.dart';
 import 'package:agop/shared/widgets/agop_text_field.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:simple_icons/simple_icons.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -154,7 +153,7 @@ class _LoginPageState extends State<LoginPage> {
                             onPressed: (){
                               Navigator.pushReplacement(
                                 context,
-                                MaterialPageRoute(builder: (context) => HomePage())
+                                MaterialPageRoute(builder: (context) => MainShell())
                               );
                             },
                             style: ElevatedButton.styleFrom(

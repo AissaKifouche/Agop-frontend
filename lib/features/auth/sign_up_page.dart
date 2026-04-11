@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:agop/shared/widgets/agop_text_field.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:simple_icons/simple_icons.dart';
-
-import '../home/home_page.dart';
+import 'package:agop/main_shell.dart';
 
 
 class SignUpPage extends StatefulWidget {
@@ -165,7 +163,7 @@ class _SignUpPageState extends State<SignUpPage> {
                             onPressed: (){
                               Navigator.pushReplacement(
                                   context,
-                                  MaterialPageRoute(builder: (context) => HomePage())
+                                  MaterialPageRoute(builder: (context) => MainShell())
                               );
                             },
                             style: ElevatedButton.styleFrom(
