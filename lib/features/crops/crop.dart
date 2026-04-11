@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 class Crop {
 
+
+  final String id;
   //for the user to provide
   final String name;
   final String fieldName;
@@ -17,6 +19,8 @@ class Crop {
   final Color statusColor;
   final Color progressBarColor;
 
+
+
   Crop({
     required this.name,
     required this.fieldName,
@@ -28,6 +32,7 @@ class Crop {
     required this.statusColor,
     required this.progressBarColor,
     required this.plantingDate,
+    required this.id,
 });
 
   bool get needsImmediateAction => daysSinceWatered >= 3 || daysSinceFertilized >= 10;
