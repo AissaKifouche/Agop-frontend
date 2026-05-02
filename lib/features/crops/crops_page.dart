@@ -1,7 +1,12 @@
+import 'dart:convert';
+
+import 'package:agop/features/crops/crop.dart';
 import 'package:agop/features/crops/crop_library.dart';
-import 'package:agop/features/crops/crops_provider.dart';
+//import 'package:agop/features/crops/crops_provider.dart';
+import 'package:agop/services/api_service.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+//import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'add_crop_sheet.dart';
 
@@ -14,8 +19,30 @@ class CropsPage extends StatefulWidget {
 
 class _CropsPageState extends State<CropsPage> {
 
+  int? farmerId;
+  List<Crop> crops = [];
 
-  
+
+  Future<void> loadCrops() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final id = prefs.getInt('user_id');
+      if (id == null) return;
+      final result = await ApiService.getCrops(id);
+      setState(() {
+        farmerId = id;
+        crops = result.map((json) => Crop.fromJson(json)).toList();
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Failed to load crops."), backgroundColor: Colors.redAccent),
+      );
+    }
+  }
+
+
+
+
   
   
   //a function to add crops
@@ -28,9 +55,17 @@ class _CropsPageState extends State<CropsPage> {
       ),
       context: context, 
       builder: (_) => AddCropSheet(),
-    );
+    ).whenComplete(() => loadCrops());
   }
-  
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    loadCrops();
+  }
+
+
 
 
 
@@ -57,7 +92,7 @@ class _CropsPageState extends State<CropsPage> {
   Widget build(BuildContext context) {
 
     //to get the crops the user add using the adding sheet
-    final crops = context.watch<CropsProvider>().crops;
+
 
 
     int needActions = crops.where((c) => c.needsImmediateAction).length;
@@ -282,7 +317,7 @@ class _CropsPageState extends State<CropsPage> {
                                             ),
                                           ),
                                           Text(
-                                            "${crop.fieldName} · ${crop.area} ha · ${crop.soilType} soil",
+                                            "${crop.fieldName} · ${crop.soilType} soil",
                                             style: TextStyle(
                                               fontSize: 13,
                                               color: Colors.grey.shade600,

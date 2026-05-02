@@ -1,9 +1,6 @@
-import 'package:agop/features/crops/crops_provider.dart';
-import 'package:agop/features/tasks/tasks_provider.dart';
 import 'package:flutter/material.dart';
 import 'core/app_theme.dart';
 import 'features/auth/get_started_page.dart';
-import "package:provider/provider.dart";
 
 /*void main() {
   runApp(
@@ -15,15 +12,7 @@ import "package:provider/provider.dart";
 }*/
 
 void main(){
-  runApp(
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => CropsProvider()),
-        ChangeNotifierProvider(create: (_) => TasksProvider()),
-      ],
-      child: MyApp(),
-    )
-  );
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -33,7 +22,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: "Agop",
-      debugShowCheckedModeBanner: true,
+      debugShowCheckedModeBanner: false,
 
       theme: AgopTheme.lightTheme,
       home: GetStartedPage(),

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../crops/crops_provider.dart';
 import 'task.dart';
-import 'tasks_provider.dart';
+import 'package:agop/features/crops/crop.dart';
+import 'package:agop/services/api_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+
 
 class AddTaskSheet extends StatefulWidget {
   const AddTaskSheet({super.key});
@@ -13,27 +15,63 @@ class AddTaskSheet extends StatefulWidget {
 class _AddTaskSheetState extends State<AddTaskSheet> {
   TaskType _type = TaskType.watering;
   DateTime _dueDate = DateTime.now().add(const Duration(days: 1));
-  String? _selectedCropId;
+  int? _selectedCropId;
+
+
+
+
+  List<Crop> _crops = [];
+
+  String get _description => switch (_type) {
+    TaskType.watering => "Water the crop",
+    TaskType.fertilizing => "Fertilize the crop",
+    TaskType.harvesting => "Harvest the crop",
+  };
+
+
+
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCrops();
+  }
+
+  Future<void> _loadCrops() async {
+    final prefs = await SharedPreferences.getInstance();
+    final farmerId = prefs.getInt("user_id");
+    if (farmerId == null) return;
+    final result = await ApiService.getCrops(farmerId);
+    setState(() {
+      _crops = result.map((json) => Crop.fromJson(json)).toList();
+    });
+  }
 
 
 
 
   bool get _isValid => _selectedCropId != null;
 
-  void _submit() {
+  Future<void> _submit() async {
     if (_selectedCropId == null) return;
-    context.read<TasksProvider>().addTask(Task(
-      id: DateTime.now().microsecondsSinceEpoch.toString(),
-      type: _type,
-      dueDate: _dueDate,
-      cropId: _selectedCropId!,
-    ));
-    Navigator.pop(context);
+    try {
+      await ApiService.createTask(
+        cropId: _selectedCropId!,
+        description: _description,
+        dueDate: _dueDate,
+      );
+      if (!mounted) return;
+      Navigator.pop(context);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Failed to add task."), backgroundColor: Colors.redAccent),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final crops = context.watch<CropsProvider>().crops;
     final theme = Theme.of(context);
 
     return SingleChildScrollView(
@@ -68,10 +106,10 @@ class _AddTaskSheetState extends State<AddTaskSheet> {
             // Link toggle
             Text('Crop', style: theme.textTheme.labelLarge),
             const SizedBox(height: 8),
-            DropdownButtonFormField<String>(
+            DropdownButtonFormField<int>(
               initialValue: _selectedCropId,
               decoration: const InputDecoration(border: OutlineInputBorder(), labelText: 'Select crop'),
-              items: crops.map((c) => DropdownMenuItem(value: c.id, child: Text('${c.name}  ·  ${c.fieldName}'))).toList(),
+              items: _crops.map((c) => DropdownMenuItem(value: c.id, child: Text('${c.name}  ·  ${c.fieldName}'))).toList(),
               onChanged: (v) => setState(() => _selectedCropId = v),
             ),
 

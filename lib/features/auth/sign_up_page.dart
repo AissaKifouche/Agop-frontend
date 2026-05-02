@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:agop/shared/widgets/agop_text_field.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:agop/main_shell.dart';
+import 'package:agop/services/api_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'verification_page.dart';
 
 
 class SignUpPage extends StatefulWidget {
@@ -20,6 +23,17 @@ class _SignUpPageState extends State<SignUpPage> {
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   bool _isRememberMeChecked = false;
+
+
+  @override
+  void dispose() {
+    _userNameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -160,11 +174,31 @@ class _SignUpPageState extends State<SignUpPage> {
                           width: double.infinity,
                           height: 60,
                           child: ElevatedButton(
-                            onPressed: (){
-                              Navigator.pushReplacement(
-                                  context,
-                                  MaterialPageRoute(builder: (context) => MainShell())
-                              );
+                            onPressed: () async {
+
+                                if (_passwordController.text != _confirmPasswordController.text) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text("Passwords do not match."), backgroundColor: Colors.redAccent),
+                                  );
+                                  return;
+                                }
+                                try {
+                                  final data = await ApiService.register(
+                                    _userNameController.text.trim(),
+                                    _emailController.text.trim(),
+                                    _passwordController.text,
+                                  );
+                                  final prefs = await SharedPreferences.getInstance();
+                                  await prefs.setInt("user_id", data["id"]);
+                                  await prefs.setString("username", data["username"]);
+                                  await prefs.setString("user_email", _emailController.text.trim());
+
+                                  Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => VerificationPage()));
+                                } catch (e) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text("Registration failed. Please try again."), backgroundColor: Colors.redAccent),
+                                  );
+                                }
                             },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Theme.of(context).primaryColor,

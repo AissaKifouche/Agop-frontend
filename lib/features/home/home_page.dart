@@ -1,10 +1,15 @@
+import 'package:agop/features/crops/crop.dart';
 import 'package:agop/features/crops/crops_page.dart';
+import 'package:agop/features/tasks/task.dart';
 import 'package:agop/features/tasks/tasks_page.dart';
+import 'package:agop/services/api_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'position.dart';
 import 'package:geocoding/geocoding.dart';
+import 'weather_service.dart';
 
 
 class HomePage extends StatefulWidget {
@@ -19,27 +24,47 @@ class _HomePageState extends State<HomePage> {
   Position? _currentPosition;
   bool _isPositionLoading = true;
   String _locationName = "";
+  WeatherData? _weatherData;
+  bool _isWeatherLoading = true;
+  int? farmerId;
+  List<Crop>? crops;
+  String? username;
+  List<Task>? tasks;
 
+
+  bool _sameDay(DateTime a, DateTime b) => a.year == b.year && a.month == b.month && a.day == b.day;
+
+
+  //a method to get the weather
+  Future<void> _fetchWeather(double lat, double lon) async {
+    try {
+      final data = await WeatherService.fetchWeather(lat, lon);
+      setState(() {
+        _weatherData = data;
+        _isWeatherLoading = false;
+      });
+    } catch (e) {
+      setState(() => _isWeatherLoading = false);
+    }
+  }
+
+
+
+  // a method to get location
   Future<void> _fetchLocation() async {
     try{
       Position position = await determinePosition();
-
-      print("coordinates found: ${position.latitude}");
-
       List<Placemark> placeMarks = await placemarkFromCoordinates(
         position.latitude,
         position.longitude
       );
-
-      print("finished here");
-
       Placemark place = placeMarks[0];
-
       setState(() {
-        _currentPosition = position as Position?;
+        _currentPosition = position;
         _locationName = "${place.locality}, ${place.administrativeArea} ${place.country}";
         _isPositionLoading = false;
       });
+      await _fetchWeather(position.latitude, position.longitude);
     }catch(e){
       setState(() {
         _isPositionLoading = false;
@@ -48,11 +73,45 @@ class _HomePageState extends State<HomePage> {
   }
 
 
+
+  Future<void> loadData() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final id = prefs.getInt("user_id");
+      final name = prefs.getString("username");
+      if (id == null) return;
+      final result = await ApiService.getCrops(id);
+      final loadedCrops = result.map((json) => Crop.fromJson(json)).toList();
+
+      List<Task> allTasks = [];
+      for (var crop in loadedCrops) {
+        final task = await ApiService.getTasks(crop.id);
+        allTasks.addAll(task.map((j) => Task.fromJson(j)));
+      }
+
+      setState(() {
+        farmerId = id;
+        username = name;
+        crops = loadedCrops;
+        tasks = allTasks;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Failed to load data."), backgroundColor: Colors.redAccent),
+      );
+    }
+  }
+
+
+
+
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
     _fetchLocation();
+    loadData();
   }
   
   @override
@@ -92,7 +151,7 @@ class _HomePageState extends State<HomePage> {
                               ),
                               SizedBox(height: 4,),
                               Text(
-                                "Ahmed Benali",
+                                username ?? "Loading",
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontWeight: FontWeight.bold,
@@ -159,7 +218,7 @@ class _HomePageState extends State<HomePage> {
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
                                           Text(
-                                            "32",
+                                            _weatherData != null ? _weatherData!.tempCurrent.round().toString() : '--',
                                             style: TextStyle(
                                               fontSize: 60,
                                               color: Colors.white,
@@ -178,17 +237,22 @@ class _HomePageState extends State<HomePage> {
                                       ),
                           
 
-                          
+
+                                      // a description
                                       Text(
-                                        "Clear skies",
+                                        _weatherData?.description ?? "Loading",
                                         style: TextStyle(
                                           color: Colors.white.withValues(alpha: 0.35),
                                         ),
                                       ),
                                     ],
                                   ),
-                          
-                                  Icon(Icons.sunny),
+
+                                  Icon(
+                                    WeatherService.getIconData(_weatherData?.icon ?? "sunny"),
+                                    color: Colors.white,
+                                    size: 40,
+                                  ),
                                 ],
                               ),
                           
@@ -204,8 +268,10 @@ class _HomePageState extends State<HomePage> {
                                   children: [
                                     Column(
                                       children: [
+                                        
+                                        //humidity
                                         Text(
-                                          "38%",
+                                          _weatherData != null ? "${_weatherData!.humidity}%" : "--",
                                           style: TextStyle(
                                             fontSize: 14,
                                             color: Colors.white,
@@ -226,10 +292,12 @@ class _HomePageState extends State<HomePage> {
                                       color: Colors.white.withValues(alpha: 0.35),
                                     ),
 
+                                    
+                                    //rain
                                     Column(
                                       children: [
                                         Text(
-                                          "0 mm",
+                                          _weatherData != null ? "${_weatherData!.rainMm.toStringAsFixed(1)} mm" : "--",
                                           style: TextStyle(
                                             fontSize: 14,
                                             color: Colors.white,
@@ -251,12 +319,14 @@ class _HomePageState extends State<HomePage> {
                                       color: Colors.white.withValues(alpha: 0.35),
                                     ),
 
+                                    
+                                    //wind speed
                                     Column(
                                       children: [
                                         Row(
                                           children: [
                                             Text(
-                                              "18 ",
+                                              _weatherData != null ? _weatherData!.windSpeed.round().toString() : "--",
                                               style: TextStyle(
                                                 fontSize: 14,
                                                 color: Colors.white,
@@ -288,10 +358,12 @@ class _HomePageState extends State<HomePage> {
                                       color: Colors.white.withValues(alpha: 0.35),
                                     ),
 
+                                    
+                                    //UV
                                     Column(
                                       children: [
                                         Text(
-                                          "High",
+                                          _weatherData?.uvIndex ?? "--",
                                           style: TextStyle(
                                             fontSize: 14,
                                             color: Colors.white,
@@ -331,255 +403,65 @@ class _HomePageState extends State<HomePage> {
                     SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
                       child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: [
+                          // NOW card (current weather)
                           SizedBox(
                             width: 60,
                             height: 95,
                             child: Card(
                               color: Color(0xFF2E1F0F),
                               child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  SizedBox(height: 5,),
-                                  Text(
-                                    "NOW",
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      color: Color(0xFF7A5C3A),
-                                    ),
-                                  ),
-
-                                  SizedBox(height: 5,),
-
+                                  SizedBox(height: 5),
+                                  Text("NOW", style: TextStyle(fontSize: 10, color: Color(0xFF7A5C3A))),
+                                  SizedBox(height: 5),
                                   Icon(
-                                    Icons.sunny,
+                                    WeatherService.getIconData(_weatherData?.icon ?? "sunny"),
                                     color: Colors.white,
                                     size: 15,
                                   ),
-
-                                  SizedBox(height: 5,),
-
-                                  Text(
-                                    "32°",
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-
-                                  Text(
-                                    "19°",
-                                    style: TextStyle(
-                                      color: Colors.white.withValues(alpha: 0.3),
-                                      fontSize: 11
-                                    ),
-                                  ),
+                                  SizedBox(height: 5),
+                                  Text("${_weatherData?.tempMax.round() ?? "--"}°",
+                                      style: TextStyle(fontSize: 14, color: Colors.white)),
+                                  Text("${_weatherData?.tempMin.round() ?? "--"}°",
+                                      style: TextStyle(color: Colors.white.withValues(alpha: 0.3), fontSize: 11)),
                                 ],
                               ),
                             ),
                           ),
 
-                          SizedBox(width: 10,),
-
-
-                          SizedBox(
-                            height: 95,
-                            width: 60,
-                            child: Card(
-                              color: Colors.white,
-                              child: Column(
-                                children: [
-
-                                  SizedBox(height: 5,),
-                                  Text(
-                                    "NOW",
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      color: Color(0xFF7A5C3A),
+                          // Next 4 days from forecast
+                          if (_weatherData != null)
+                            ...(_weatherData!.forecast.map((day) => Row(
+                              children: [
+                                SizedBox(width: 10),
+                                SizedBox(
+                                  height: 95,
+                                  width: 60,
+                                  child: Card(
+                                    color: Colors.white,
+                                    child: Column(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        SizedBox(height: 5),
+                                        Text(day.label, style: TextStyle(fontSize: 10, color: Color(0xFF7A5C3A))),
+                                        SizedBox(height: 5),
+                                        Icon(
+                                          WeatherService.forecastIconData(day.weatherCode),
+                                          size: 15,
+                                        ),
+                                        SizedBox(height: 5),
+                                        Text("${day.tempMax.round()}°",
+                                            style: TextStyle(fontSize: 14, color: Colors.black)),
+                                        Text("${day.tempMin.round()}°",
+                                            style: TextStyle(color: Color(0xFFB8926A), fontSize: 11)),
+                                      ],
                                     ),
                                   ),
-
-                                  SizedBox(height: 5,),
-
-                                  Icon(
-                                    Icons.sunny,
-                                    size: 15,
-                                  ),
-
-                                  SizedBox(height: 5,),
-
-                                  Text(
-                                    "32°",
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: Colors.black,
-                                    ),
-                                  ),
-
-                                  Text(
-                                    "19°",
-                                    style: TextStyle(
-                                        color: Color(0xFFB8926A),
-                                        fontSize: 11
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-
-                          SizedBox(width: 10,),
-
-
-                          SizedBox(
-                            height: 95,
-                            width: 60,
-                            child: Card(
-                              color: Colors.white,
-                              child: Column(
-                                children: [
-
-                                  SizedBox(height: 5,),
-
-                                  Text(
-                                    "NOW",
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      color: Color(0xFF7A5C3A),
-                                    ),
-                                  ),
-
-                                  SizedBox(height: 5,),
-
-                                  Icon(
-                                    Icons.sunny,
-                                    size: 15,
-                                  ),
-
-                                  SizedBox(height: 5,),
-
-                                  Text(
-                                    "32°",
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: Colors.black,
-                                    ),
-                                  ),
-
-                                  Text(
-                                    "19°",
-                                    style: TextStyle(
-                                        color: Color(0xFFB8926A),
-                                        fontSize: 11
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-
-                          SizedBox(width: 10,),
-
-
-                          SizedBox(
-                            height: 95,
-                            width: 60,
-                            child: Card(
-                              color: Colors.white,
-                              child: Column(
-                                children: [
-
-                                  SizedBox(height: 5,),
-
-                                  Text(
-                                    "NOW",
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      color: Color(0xFF7A5C3A),
-                                    ),
-                                  ),
-
-                                  SizedBox(height: 5,),
-
-                                  Icon(
-                                    Icons.sunny,
-                                    size: 15,
-                                  ),
-
-                                  SizedBox(height: 5,),
-
-                                  Text(
-                                    "32°",
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: Colors.black,
-                                    ),
-                                  ),
-
-                                  Text(
-                                    "19°",
-                                    style: TextStyle(
-                                        color: Color(0xFFB8926A),
-                                        fontSize: 11
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-
-                          SizedBox(width: 10,),
-
-
-                          SizedBox(
-                            height: 95,
-                            width: 60,
-                            child: Card(
-                              color: Colors.white,
-                              child: Column(
-                                children: [
-
-                                  SizedBox(height: 5,),
-
-                                  Text(
-                                    "NOW",
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      color: Color(0xFF7A5C3A),
-                                    ),
-                                  ),
-
-                                  SizedBox(height: 5,),
-
-                                  Icon(
-                                    Icons.sunny,
-                                    size: 15,
-                                  ),
-
-                                  SizedBox(height: 5,),
-
-                                  Text(
-                                    "32°",
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: Colors.black,
-                                    ),
-                                  ),
-
-                                  Text(
-                                    "19°",
-                                    style: TextStyle(
-                                        color: Color(0xFFB8926A),
-                                        fontSize: 11
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-
-
-
+                                ),
+                              ],
+                            ))),
                         ],
                       ),
                     ),
@@ -596,83 +478,85 @@ class _HomePageState extends State<HomePage> {
                           padding: EdgeInsets.symmetric(vertical: 8, horizontal: 20),
 
 
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceAround,
-                            children: [
+                          child: _weatherData == null
+                            ? Center(child: SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFFB8860B))))
+                            : Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceAround,
+                              children: [
 
 
-                              Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    "06:14",
-                                    style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                                      fontSize: 14,
-                                    ),
-                                  ),
-
-                                  Text(
-                                    "SUNRISE",
-                                    style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                                      fontSize: 9,
+                                Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      WeatherService.formatTime(_weatherData!.sunriseTs),
+                                      style: Theme.of(context).textTheme.displayLarge?.copyWith(
+                                        fontSize: 14,
+                                      ),
                                     ),
 
-                                  )
-                                ],
-                              ),
+                                    Text(
+                                      "SUNRISE",
+                                      style: Theme.of(context).textTheme.displayLarge?.copyWith(
+                                        fontSize: 9,
+                                      ),
 
-                              VerticalDivider(
-                                width: 80,
-                                color: Color(0xFFB8860B).withValues(alpha: 0.3),
-                              ),
+                                    )
+                                  ],
+                                ),
 
-                              Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    "12:50",
-                                    style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                                      fontSize: 14,
-                                    ),
-                                  ),
+                                VerticalDivider(
 
-                                  Text(
-                                    "DAYLIGHT",
-                                    style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                                      fontSize: 9,
-                                    ),
+                                  color: Color(0xFFB8860B).withValues(alpha: 0.3),
+                                ),
 
-                                  )
-                                ],
-                              ),
-
-                              VerticalDivider(
-                                width: 80,
-                                color: Color(0xFFB8860B).withValues(alpha: 0.3),
-                              ),
-
-
-                              Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    "18:52",
-                                    style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                                      fontSize: 14,
-                                    ),
-                                  ),
-
-                                  Text(
-                                    "SUNSET",
-                                    style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                                      fontSize: 9,
+                                Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      WeatherService.daylightDuration(_weatherData!.sunriseTs, _weatherData!.sunsetTs),
+                                      style: Theme.of(context).textTheme.displayLarge?.copyWith(
+                                        fontSize: 14,
+                                      ),
                                     ),
 
-                                  )
-                                ],
-                              ),
-                            ],
-                          ),
+                                    Text(
+                                      "DAYLIGHT",
+                                      style: Theme.of(context).textTheme.displayLarge?.copyWith(
+                                        fontSize: 9,
+                                      ),
+
+                                    )
+                                  ],
+                                ),
+
+                                VerticalDivider(
+
+                                  color: Color(0xFFB8860B).withValues(alpha: 0.3),
+                                ),
+
+
+                                Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      WeatherService.formatTime(_weatherData!.sunsetTs),
+                                      style: Theme.of(context).textTheme.displayLarge?.copyWith(
+                                        fontSize: 14,
+                                      ),
+                                    ),
+
+                                    Text(
+                                      "SUNSET",
+                                      style: Theme.of(context).textTheme.displayLarge?.copyWith(
+                                        fontSize: 9,
+                                      ),
+
+                                    )
+                                  ],
+                                ),
+                              ],
+                            ),
                         ),
                       ),
                     ),
@@ -692,8 +576,8 @@ class _HomePageState extends State<HomePage> {
                         ),
 
                         TextButton(
-                          onPressed: (){
-
+                          onPressed: () {
+                            Navigator.push(context, MaterialPageRoute(builder: (_) => TasksPage()));
                           },
 
                           child: Text(
@@ -709,7 +593,18 @@ class _HomePageState extends State<HomePage> {
 
 
                     //the tasks cards
-
+                    if (tasks == null)
+                      Center(child: CircularProgressIndicator())
+                    else if (tasks!.isEmpty)
+                      Text("No tasks for today", style: TextStyle(color: Colors.grey))
+                    else
+                      ...tasks!
+                          .where((t) => !t.isDone && _sameDay(t.dueDate, DateTime.now()))
+                          .map((t) => ListTile(
+                        leading: Text(t.type.icon2),
+                        title: Text(t.description),
+                        subtitle: Text(crops?.firstWhere((c) => c.id == t.cropId).name ?? ""),
+                      )),
 
 
 

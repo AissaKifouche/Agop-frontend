@@ -1,4 +1,5 @@
 import 'package:geolocator/geolocator.dart';
+import "dart:io";
 
 
 
@@ -8,7 +9,7 @@ Future<Position> determinePosition () async{
 
   serviceEnabled = await Geolocator.isLocationServiceEnabled();
   if(!serviceEnabled){
-    return Future.error("Location service are disabled");
+    return Future.error("Location services are disabled");
   }
 
   permission = await Geolocator.checkPermission();
@@ -20,13 +21,19 @@ Future<Position> determinePosition () async{
   }
 
   if (permission == LocationPermission.deniedForever){
-    return Future.error("Location permissions are permanently denied, wa cannot request permissions");
+    return Future.error("Location permissions are permanently denied, we cannot request permissions");
   }
 
   return await Geolocator.getCurrentPosition(
-    locationSettings: AndroidSettings(),
-    desiredAccuracy: LocationAccuracy.medium, // Medium is usually enough for city-level
-    timeLimit: const Duration(seconds: 10),
+    locationSettings: Platform.isAndroid
+        ? AndroidSettings(
+      accuracy: LocationAccuracy.medium,
+      timeLimit: const Duration(seconds: 10),
+    )
+        : AppleSettings(
+      accuracy: LocationAccuracy.medium,
+      timeLimit: const Duration(seconds: 10),
+    ),
   );
 }
 

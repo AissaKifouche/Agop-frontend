@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+//import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../../services/api_service.dart';
 import 'crop_library.dart';
 import 'crop_template.dart';
-import 'crops_provider.dart';
+//import 'crops_provider.dart';
+import 'crop.dart';
 
 class AddCropSheet extends StatefulWidget {
   const AddCropSheet({super.key});
@@ -27,23 +30,37 @@ class _AddCropSheetState extends State<AddCropSheet> {
     super.dispose();
   }
 
-  void _submit() {
-    // basic validation
+  Future<void> _submit() async {
     if (_selectedTemplate == null ||
         _fieldNameController.text.isEmpty ||
         _areaController.text.isEmpty) {
       return;
     }
 
-    final crop = _selectedTemplate!.toCrop(
-      fieldName: _fieldNameController.text,
-      soilType: _selectedSoilType,
-      area: double.tryParse(_areaController.text) ?? 0,
-      plantingDate: _plantingDate,
-    );
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final farmerId = prefs.getInt("user_id");
+      if (farmerId == null) return;
 
-    context.read<CropsProvider>().addCrop(crop);
-    Navigator.pop(context);
+      final body = _selectedTemplate!.toJson(
+        fieldName: _fieldNameController.text,
+        soilType: _selectedSoilType,
+        area: double.tryParse(_areaController.text) ?? 0,
+        plantingDate: _plantingDate,
+      );
+
+      final response = await ApiService.createCrop(farmerId, body);
+      final crop = Crop.fromJson(response);
+
+      if (!mounted) return;
+      //context.read<CropsProvider>().addCrop(crop);
+      Navigator.pop(context);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Failed to add crop. Please try again."), backgroundColor: Colors.redAccent),
+      );
+    }
   }
 
   Future<void> _pickDate() async {

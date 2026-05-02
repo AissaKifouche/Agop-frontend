@@ -30,15 +30,28 @@ enum TaskType{
     TaskType.harvesting  => Color(0xFFFFB74D),
   };
 
+
+  static TaskType fromDescription(String description) {
+    final lower = description.toLowerCase();
+    if (lower.contains("water")) return TaskType.watering;
+    if (lower.contains("fertili")) return TaskType.fertilizing;
+    if (lower.contains("harvest")) return TaskType.harvesting;
+    return TaskType.watering; // default fallback
+  }
+
+
+
 }
 
 class Task {
-  final String id;
+  final int id;
   final TaskType type;
   final DateTime dueDate;
   bool isDone;
   DateTime? completedAt;
-  final String cropId;
+  final int cropId;
+  final String description;
+
 
 
   Task({
@@ -47,9 +60,22 @@ class Task {
     required this.dueDate,
     this.isDone = false,
     required this.cropId,
+    required this.description,
   });
 
   bool get isOverdue => ! isDone && dueDate.isBefore(DateTime.now());
+
+
+  factory Task.fromJson(Map<String, dynamic> json) {
+    return Task(
+      id: json["id"],
+      cropId: json["crop_id"],
+      description: json["description"],
+      dueDate: DateTime.parse(json["due_date"]),
+      isDone: json["is_done"],
+      type: TaskType.fromDescription(json["description"]),
+    );
+  }
 
 
 }

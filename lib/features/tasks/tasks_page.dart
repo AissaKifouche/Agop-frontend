@@ -1,31 +1,144 @@
+import 'package:agop/services/api_service.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../crops/crop.dart';
-import '../crops/crops_provider.dart';
 import 'add_task_sheet.dart';
 import 'task.dart';
-import 'tasks_provider.dart';
 
-class TasksPage extends StatelessWidget {
+class TasksPage extends StatefulWidget {
   const TasksPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final provider = context.watch<TasksProvider>();
-    final crops    = context.watch<CropsProvider>().crops;
+  State<TasksPage> createState() => _TasksPageState();
+}
 
-    final total   = provider.all.length;
-    final done    = provider.done.length;
-    final pending = provider.pending.length;
-    final overdue = provider.overdue.length;
+class _TasksPageState extends State<TasksPage> {
+
+  @override
+  void initState() {
+    super.initState();
+    loadTasks();
+  }
+
+  List<Task> _tasks = [];
+  List<Crop> _crops = [];
+
+  Future<void> loadTasks() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final farmerId = prefs.getInt('user_id');
+      if (farmerId == null) return;
+      final cropData = await ApiService.getCrops(farmerId);
+      final loadedCrops = cropData.map((j) => Crop.fromJson(j)).toList();
+
+      List<Task> allTasks = [];
+      for (var crop in loadedCrops) {
+        final tasks = await ApiService.getTasks(crop.id);
+        allTasks.addAll(tasks.map((j) => Task.fromJson(j)));
+      }
+
+      setState(() {
+        _crops = loadedCrops;
+        _tasks = allTasks;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Failed to load tasks."), backgroundColor: Colors.redAccent),
+      );
+    }
+  }
+
+
+  List<Task> get _pending => _tasks.where((t) => !t.isDone).toList()
+    ..sort((a, b) => a.dueDate.compareTo(b.dueDate));
+
+  List<Task> get _done => _tasks.where((t) => t.isDone).toList();
+
+  List<Task> get _overdue => _tasks.where((t) => !t.isDone && t.dueDate.isBefore(_todayDate())).toList();
+
+  List<Task> get _today => _tasks.where((t) => !t.isDone && _sameDay(t.dueDate, DateTime.now())).toList();
+
+  List<Task> get _thisWeek => _tasks.where((t) => !t.isDone && t.dueDate.isAfter(_todayDate()) && t.dueDate.isBefore(_todayDate().add(const Duration(days: 7)))).toList();
+
+  List<Task> get _later => _tasks.where((t) => !t.isDone && t.dueDate.isAfter(_todayDate().add(const Duration(days: 7)))).toList();
+
+  DateTime _todayDate() {
+    final n = DateTime.now();
+    return DateTime(n.year, n.month, n.day);
+  }
+
+  bool _sameDay(DateTime a, DateTime b) => a.year == b.year && a.month == b.month && a.day == b.day;
+
+
+
+
+
+  Future<void> _toggleTask(Task task) async {
+    try {
+      await ApiService.updateTask(task.id, !task.isDone);
+      await loadTasks();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Failed to update task."), backgroundColor: Colors.redAccent),
+      );
+    }
+  }
+
+  Future<void> _deleteTask(Task task) async {
+    // 1. Restriction: Only allow deletion if task is completed
+    if (!task.isDone) {
+      // Re-load tasks to bring back the dismissed item from the UI
+      await loadTasks();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Only completed tasks can be deleted."),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    try {
+      // 2. Optimistic UI: Remove from local list immediately to prevent "Red Screen"
+      setState(() {
+        _tasks.removeWhere((t) => t.id == task.id);
+      });
+
+      // 3. Delete from Backend
+      await ApiService.deleteTask(task.id);
+
+      // Optional: Refresh fully to ensure sync
+      await loadTasks();
+    } catch (e) {
+      if (!mounted) return;
+      // If API fails, bring it back
+      await loadTasks();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Failed to delete task."), backgroundColor: Colors.redAccent),
+      );
+    }
+  }
+
+
+
+
+  @override
+  Widget build(BuildContext context) {
+    final total   = _tasks.length;
+    final done    = _done.length;
+    final pending = _pending.length;
+    final overdue = _overdue.length;
 
     final sections = <_Section>[
-      if (provider.overdue.isNotEmpty)  _Section('OVERDUE',   provider.overdue,  isOverdue: true),
-      if (provider.today.isNotEmpty)    _Section('TODAY',     provider.today),
-      if (provider.thisWeek.isNotEmpty) _Section('THIS WEEK', provider.thisWeek),
-      if (provider.later.isNotEmpty)    _Section('LATER',     provider.later),
-      if (provider.done.isNotEmpty)     _Section('COMPLETED', provider.done,     isDone: true),
+      if (_overdue.isNotEmpty)  _Section('OVERDUE',   _overdue,  isOverdue: true),
+      if (_today.isNotEmpty)    _Section('TODAY',     _today),
+      if (_thisWeek.isNotEmpty) _Section('THIS WEEK', _thisWeek),
+      if (_later.isNotEmpty)    _Section('LATER',     _later),
+      if (_done.isNotEmpty)     _Section('COMPLETED', _done, isDone: true),
     ];
 
     return Scaffold(
@@ -37,7 +150,7 @@ class TasksPage extends StatelessWidget {
           isScrollControlled: true,
           backgroundColor: Colors.transparent,
           builder: (_) => const AddTaskSheet(),
-        ),
+        ).whenComplete(() => loadTasks()),
         child: const Icon(Icons.add, color: Colors.white),
       ),
       body: SafeArea(
@@ -101,13 +214,12 @@ class TasksPage extends StatelessWidget {
                             ),
                           ]),
                         ),
-
                       ]),
                     ),
                   ],
                 ),
               ),
-        
+
               // ── Sections ──────────────────────────────────────────
               if (sections.isEmpty)
                 SizedBox(
@@ -124,7 +236,12 @@ class TasksPage extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
                   child: Column(
-                    children: sections.map((s) => _SectionWidget(section: s, crops: crops)).toList(),
+                    children: sections.map((s) => _SectionWidget(
+                      section: s,
+                      crops: _crops,
+                      onToggle: _toggleTask,
+                      onDelete: _deleteTask,
+                    )).toList(),
                   ),
                 ),
             ],
@@ -137,6 +254,11 @@ class TasksPage extends StatelessWidget {
 
 // ─────────────────────────────────────────────────────────────────────────────
 
+
+
+
+
+
 class _Section {
   final String title;
   final List<Task> tasks;
@@ -148,7 +270,14 @@ class _Section {
 class _SectionWidget extends StatelessWidget {
   final _Section section;
   final List<Crop> crops;
-  const _SectionWidget({required this.section, required this.crops});
+  final void Function(Task) onToggle;
+  final void Function(Task) onDelete;
+  const _SectionWidget({
+    required this.section,
+    required this.crops,
+    required this.onToggle,
+    required this.onDelete,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -169,10 +298,12 @@ class _SectionWidget extends StatelessWidget {
             Expanded(child: Divider(color: Colors.grey.shade300, height: 1)),
           ]),
         ),
-        ...section.tasks.map((t) => _TaskCard(
+        ...section.tasks.where((t) => crops.any((c) => c.id == t.cropId)).map((t) => _TaskCard(
           task: t,
-          crop: crops.firstWhere((c) => c.id == t.cropId, orElse: () => crops.first),
+          crop: crops.firstWhere((c) => c.id == t.cropId),
           isOverdue: section.isOverdue,
+          onToggle: () => onToggle(t),
+          onDelete: () => onDelete(t),
         )),
         const SizedBox(height: 16),
       ],
@@ -183,18 +314,26 @@ class _SectionWidget extends StatelessWidget {
 // ─────────────────────────────────────────────────────────────────────────────
 
 class _TaskCard extends StatelessWidget {
+
+  final VoidCallback onToggle;
+  final VoidCallback onDelete;
   final Task task;
   final Crop crop;
   final bool isOverdue;
-  const _TaskCard({required this.task, required this.crop, this.isOverdue = false});
+  const _TaskCard({
+    required this.task,
+    required this.crop,
+    required this.onToggle,
+    required this.onDelete,
+    this.isOverdue = false,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final provider = context.read<TasksProvider>();
 
     return Dismissible(
       key: ValueKey(task.id),
-      direction: DismissDirection.endToStart,
+      direction: task.isDone ? DismissDirection.endToStart : DismissDirection.none,
       background: Container(
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 20),
@@ -205,7 +344,7 @@ class _TaskCard extends StatelessWidget {
         ),
         child: Icon(Icons.delete_outline, color: Colors.red.shade400),
       ),
-      onDismissed: (_) => provider.deleteTask(task.id),
+      onDismissed: (_) => onDelete(),
       child: Container(
         margin: const EdgeInsets.only(bottom: 8),
         decoration: BoxDecoration(
@@ -219,7 +358,7 @@ class _TaskCard extends StatelessWidget {
           color: Colors.transparent,
           child: InkWell(
             borderRadius: BorderRadius.circular(14),
-            onTap: () => provider.toggleDone(task.id),
+            onTap: () => onToggle(),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
               child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -227,7 +366,7 @@ class _TaskCard extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.only(top: 2),
                   child: GestureDetector(
-                    onTap: () => provider.toggleDone(task.id),
+                    onTap: () => onToggle(),
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 200),
                       width: 22, height: 22,
@@ -262,7 +401,6 @@ class _TaskCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 6),
                     Row(children: [
-                      // Crop chip
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                         decoration: BoxDecoration(
@@ -307,8 +445,8 @@ class _TaskCard extends StatelessWidget {
   }
 
   String _contextText() {
-    if (task.isDone && task.completedAt != null) {
-      return 'Done at ${DateFormat('h:mm a').format(task.completedAt!)}';
+    if (task.isDone) {
+      return 'Completed · ${crop.fieldName}';
     }
     final now  = DateTime.now();
     final diff = task.dueDate.difference(DateTime(now.year, now.month, now.day)).inDays;
@@ -321,7 +459,20 @@ class _TaskCard extends StatelessWidget {
     };
     return '$rel · ${crop.fieldName}';
   }
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
 
 // ─────────────────────────────────────────────────────────────────────────────
 

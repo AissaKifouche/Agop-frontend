@@ -66,7 +66,26 @@ class CropTemplate {
   bool isHarvestReady(Crop crop) => crop.daysSincePlanting >= totalDays;
 
 
-  Crop toCrop({
+  Map<String, dynamic> toJson({
+    required String fieldName,
+    required String soilType,
+    required double area,
+    required DateTime plantingDate,
+  }) {
+    final daysSince = DateTime.now().difference(plantingDate).inDays + 1;
+    return {
+      "crop_name": name,
+      "field_name": fieldName,
+      "soil_type": soilType,
+      "area": area,
+      "growth_stage": stageAtDay(daysSince),
+      "planting_date": plantingDate.toIso8601String(),
+    };
+  }
+
+
+
+  /*Crop toCrop({
     required String fieldName,
     required String soilType,
     required double area,
@@ -79,12 +98,10 @@ class CropTemplate {
       area: area,
       plantingDate: plantingDate,
       lastWateredDate: null,
-      lastFertilizedDate: null,
-      statusMessage: "looking healthy",
-      statusColor: Colors.green,
-      progressBarColor: Colors.green,
-      id: DateTime.now().microsecondsSinceEpoch.toString(),
+      lastFertilizedDate: null, id: null, farmerId: null, growthStage: '',
     );
-  }
+  }*/
+  
+  
 
 }

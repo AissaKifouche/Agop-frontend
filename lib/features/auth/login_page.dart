@@ -1,8 +1,11 @@
 import 'package:agop/features/auth/sign_up_page.dart';
+import 'package:agop/features/home/home_page.dart';
 import 'package:agop/main_shell.dart';
+import 'package:agop/services/api_service.dart';
 import 'package:flutter/material.dart';
 import 'package:agop/shared/widgets/agop_text_field.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -75,8 +78,8 @@ class _LoginPageState extends State<LoginPage> {
                         
                         //username field using the customised input field AgopTextField
                         AgopTextField(
-                            label: "username or e-mail",
-                            hintText: "enter your identifier",
+                            label: "e-mail",
+                            hintText: "enter your e-mail",
                           controller: _identifierConroller,
                         ),
 
@@ -150,11 +153,23 @@ class _LoginPageState extends State<LoginPage> {
                           child: ElevatedButton(
 
                             //takes to the home page
-                            onPressed: (){
-                              Navigator.pushReplacement(
-                                context,
-                                MaterialPageRoute(builder: (context) => MainShell())
-                              );
+                            onPressed: () async {
+                              try{
+                                final data = await ApiService.login(_identifierConroller.text, _passwordController.text);
+
+
+                                final prefs = await SharedPreferences.getInstance();
+                                await prefs.setInt("user_id", data["user"]["id"]);
+                                await prefs.setString("username", data["user"]["username"]);
+                                await prefs.setString("token", data["access_token"]);
+
+                                Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => MainShell()));
+
+                              } catch (e){
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text("login failed, check your credentials")),
+                                );
+                              }
                             },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Theme.of(context).primaryColor,

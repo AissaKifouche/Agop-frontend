@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+/*import 'package:flutter/material.dart';
+import '../../services/api_service.dart';
 import 'crop.dart';
 
 class CropsProvider extends ChangeNotifier{
@@ -11,13 +12,26 @@ class CropsProvider extends ChangeNotifier{
     notifyListeners();
   }
 
-  void deleteCrop(int index){
-    _crops.removeAt(index);
+  void deleteCrop(int cropId){
+    _crops.removeWhere((crop) => crop.id == cropId);
     notifyListeners();
   }
 
-  void updateCrop(int index, Crop updated){
-    _crops[index] = updated;
+  void updateCrop(Crop updated){
+    final index = _crops.indexWhere((crop) => crop.id == updated.id);
+    if (index != -1) {
+      _crops[index] = updated;
+      notifyListeners();
+    }
+  }
+
+
+  Future<void> loadCrops(int farmerId) async {
+    final data = await ApiService.getCrops(farmerId);
+    _crops.clear();
+    _crops.addAll(data.map((json) => Crop.fromJson(json)));
     notifyListeners();
   }
+
 }
+*/

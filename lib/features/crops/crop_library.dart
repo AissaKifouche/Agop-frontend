@@ -71,7 +71,7 @@ class CropLibrary {
 
   static CropTemplate? findByName(String name) {
     try {
-      return crops.firstWhere((c) => c.name == name);
+      return crops.firstWhere((c) => c.name.toLowerCase() == name.toLowerCase());
     } catch (_) {
       return null;
     }
