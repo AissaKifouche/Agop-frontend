@@ -133,11 +133,17 @@ class ApiService {
   }
 
   static Future<Map<String, dynamic>> submitLog(int cropId, double water, double fertilizer) async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? token = prefs.getString("token");
+
     final res = await http.post(
       Uri.parse("$baseUrl/logs/"),
-      headers: {"Content-Type": "application/json"},
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer $token", // ← add this
+      },
       body: jsonEncode({"crop_id": cropId, "water_quantity": water, "fertilizer_qty": fertilizer}),
-      );
+    );
 
     return jsonDecode(res.body);
   }

@@ -78,6 +78,20 @@ class _TasksPageState extends State<TasksPage> {
   Future<void> _toggleTask(Task task) async {
     try {
       await ApiService.updateTask(task.id, !task.isDone);
+
+      // if marking a watering task as done, log it to update last_watered_date
+      if (!task.isDone && task.type == TaskType.watering) {
+        final crop = _crops.firstWhere((c) => c.id == task.cropId);
+        final result = await ApiService.submitLog(crop.id, crop.area * 3600, 0);
+        print("Log result: $result");
+      }
+
+      // if marking a fertilizing task as done, log it to update last_fertilized_date
+      if (!task.isDone && task.type == TaskType.fertilizing) {
+        final crop = _crops.firstWhere((c) => c.id == task.cropId);
+        await ApiService.submitLog(crop.id, 0, 1);
+      }
+
       await loadTasks();
     } catch (e) {
       if (!mounted) return;

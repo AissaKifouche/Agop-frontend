@@ -14,10 +14,10 @@ class CropsPage extends StatefulWidget {
   const CropsPage({super.key});
 
   @override
-  State<CropsPage> createState() => _CropsPageState();
+  State<CropsPage> createState() => CropsPageState();
 }
 
-class _CropsPageState extends State<CropsPage> {
+class CropsPageState extends State<CropsPage> {
 
   int? farmerId;
   List<Crop> crops = [];
@@ -412,7 +412,7 @@ class _CropsPageState extends State<CropsPage> {
                           ),
 
                           // alert banner — only shown when action needed
-                          if (crop.needsImmediateAction) ...[
+                          if (crop.daysSinceWatered >= 3) ...[
                             Divider(height: 1, color: Colors.grey.shade200),
                             Container(
                               width: double.infinity,
@@ -426,10 +426,7 @@ class _CropsPageState extends State<CropsPage> {
                               ),
                               child: Text(
                                 "💧 Water needed today — ${(crop.area * 3600).toStringAsFixed(0)} L required",
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  color: Color(0xFF333333),
-                                ),
+                                style: const TextStyle(fontSize: 14, color: Color(0xFF333333)),
                               ),
                             ),
                           ],
