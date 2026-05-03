@@ -1,5 +1,6 @@
 import 'package:agop/features/crops/crop.dart';
 import 'package:agop/features/crops/crops_page.dart';
+import 'package:agop/features/home/my_account_page.dart';
 import 'package:agop/features/tasks/task.dart';
 import 'package:agop/features/tasks/tasks_page.dart';
 import 'package:agop/services/api_service.dart';
@@ -13,7 +14,10 @@ import 'weather_service.dart';
 
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  final VoidCallback onNavigateToTasks;
+  const HomePage({super.key, required this.onNavigateToTasks});
+
+
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -165,7 +169,10 @@ class _HomePageState extends State<HomePage> {
                           //the profile Icon
                           IconButton(
                             onPressed: (){
-
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (_) => MyAccountPage())
+                              );
                             },
                             icon: SvgPicture.asset(
                               "assets/images/profile icon.svg",
@@ -576,9 +583,7 @@ class _HomePageState extends State<HomePage> {
                         ),
 
                         TextButton(
-                          onPressed: () {
-                            Navigator.push(context, MaterialPageRoute(builder: (_) => TasksPage()));
-                          },
+                          onPressed: widget.onNavigateToTasks,
 
                           child: Text(
                             "See all",

@@ -29,7 +29,7 @@ class _MainShellState extends State<MainShell> {
       body: IndexedStack(
         index: _selectedIndex,
         children: [
-          HomePage(),
+          HomePage(onNavigateToTasks: () => setState(() { _selectedIndex = 2; })),
           CropsPage(),
           TasksPage(),
         ],

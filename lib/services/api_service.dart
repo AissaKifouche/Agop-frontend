@@ -11,17 +11,20 @@ class ApiService {
   static Future<Map<String, dynamic>> login(String email, String password) async {
     final res = await http.post(
       Uri.parse("$baseUrl/users/login"),
-      headers: {"Content-Type": "application/json"},
-      body: jsonEncode({"email": email, "password": password}),
+      // 1. Remove "Content-Type: application/json"
+      // The http package will set it to "application/x-www-form-urlencoded" automatically
+      headers: {},
+      // 2. Send as a Map, NOT jsonEncode
+      body: {
+        "username": email, // FastAPI OAuth2 uses 'username' as the key
+        "password": password,
+      },
     );
 
-    final decoded = jsonDecode(res.body);
-
     if (res.statusCode == 200) {
-      return decoded;
+      return jsonDecode(res.body);
     } else {
-      // This triggers the 'catch' block in your UI
-      throw Exception(decoded["detail"] ?? "Login failed");
+      throw Exception("Login failed: ${res.body}");
     }
   }
 
