@@ -74,11 +74,9 @@ class ApiService {
       if (response.statusCode == 200) {
         return true; // Verification success
       } else {
-        print("Verification error: ${response.body}");
         return false;
       }
     } catch (e) {
-      print("Connection error: $e");
       return false;
     }
   }
@@ -100,7 +98,6 @@ class ApiService {
     if (res.statusCode == 200) {
       return jsonDecode(res.body);
     } else {
-      print("Error fetching crops: ${res.body}");
       return []; // Return an empty list if it fails
     }
   }
@@ -123,7 +120,6 @@ class ApiService {
     if (res.statusCode == 200 || res.statusCode == 201) {
       return decoded;
     } else {
-      print("Error creating crop: ${res.body}");
       throw Exception(decoded["detail"] ?? "Failed to create crop");
     }
   }
@@ -169,7 +165,6 @@ class ApiService {
     if (res.statusCode == 200) {
       return jsonDecode(res.body);
     } else {
-      print("Error fetching tasks: ${res.body}");
       return [];
     }
   }
@@ -190,7 +185,6 @@ class ApiService {
     if (res.statusCode == 200) {
       return jsonDecode(res.body);
     } else {
-      print("Error updating task: ${res.body}");
       throw Exception("Failed to update task");
     }
   }
@@ -208,7 +202,6 @@ class ApiService {
     );
 
     if (res.statusCode != 200 && res.statusCode != 204) {
-      print("Delete error: ${res.body}");
       throw Exception("Failed to delete task from server");
     }
   }

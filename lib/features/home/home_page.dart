@@ -1,8 +1,6 @@
 import 'package:agop/features/crops/crop.dart';
-import 'package:agop/features/crops/crops_page.dart';
 import 'package:agop/features/home/my_account_page.dart';
 import 'package:agop/features/tasks/task.dart';
-import 'package:agop/features/tasks/tasks_page.dart';
 import 'package:agop/services/api_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -26,10 +24,8 @@ class HomePage extends StatefulWidget {
 class HomePageState extends State<HomePage> {
 
   Position? _currentPosition;
-  bool _isPositionLoading = true;
   String _locationName = "";
   WeatherData? _weatherData;
-  bool _isWeatherLoading = true;
   int? farmerId;
   List<Crop>? crops;
   String? username;
@@ -47,11 +43,13 @@ class HomePageState extends State<HomePage> {
       final data = await WeatherService.fetchWeather(lat, lon);
       setState(() {
         _weatherData = data;
-        _isWeatherLoading = false;
       });
     } catch (e) {
-      setState(() => _isWeatherLoading = false);
-    }
+      if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Failed to load weather."), backgroundColor: Colors.redAccent),
+        );
+      }
   }
 
 
@@ -68,12 +66,10 @@ class HomePageState extends State<HomePage> {
       setState(() {
         _currentPosition = position;
         _locationName = "${place.locality}, ${place.administrativeArea} ${place.country}";
-        _isPositionLoading = false;
       });
       await _fetchWeather(position.latitude, position.longitude);
     }catch(e){
       setState(() {
-        _isPositionLoading = false;
       });
     }
   }
