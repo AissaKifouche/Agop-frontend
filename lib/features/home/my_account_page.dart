@@ -149,6 +149,15 @@ class _MyAccountPageState extends State<MyAccountPage> {
               ),
             ),
 
+            Text(
+              "Agop v1.0.0",
+              style: TextStyle(
+                fontSize: 11,
+                color: Color(0xFFB8926A),
+                fontFamily: "InstrumentSerif",
+              ),
+            ),
+
 
           ],
         ),

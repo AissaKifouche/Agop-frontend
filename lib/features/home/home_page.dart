@@ -20,10 +20,10 @@ class HomePage extends StatefulWidget {
 
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  State<HomePage> createState() => HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class HomePageState extends State<HomePage> {
 
   Position? _currentPosition;
   bool _isPositionLoading = true;
@@ -37,6 +37,8 @@ class _HomePageState extends State<HomePage> {
 
 
   bool _sameDay(DateTime a, DateTime b) => a.year == b.year && a.month == b.month && a.day == b.day;
+
+  void refresh() => loadData();
 
 
   //a method to get the weather
@@ -295,7 +297,6 @@ class _HomePageState extends State<HomePage> {
                                     ),
 
                                     VerticalDivider(
-                                      width: 40,
                                       color: Colors.white.withValues(alpha: 0.35),
                                     ),
 
@@ -321,8 +322,6 @@ class _HomePageState extends State<HomePage> {
                                     ),
 
                                     VerticalDivider(
-                                      thickness: 1,
-                                      width: 40,
                                       color: Colors.white.withValues(alpha: 0.35),
                                     ),
 
@@ -361,7 +360,6 @@ class _HomePageState extends State<HomePage> {
                                     ),
 
                                     VerticalDivider(
-                                      width: 40,
                                       color: Colors.white.withValues(alpha: 0.35),
                                     ),
 
@@ -600,16 +598,88 @@ class _HomePageState extends State<HomePage> {
                     //the tasks cards
                     if (tasks == null)
                       Center(child: CircularProgressIndicator())
-                    else if (tasks!.isEmpty)
-                      Text("No tasks for today", style: TextStyle(color: Colors.grey))
                     else
-                      ...tasks!
-                          .where((t) => !t.isDone && _sameDay(t.dueDate, DateTime.now()))
-                          .map((t) => ListTile(
-                        leading: Text(t.type.icon2),
-                        title: Text(t.description),
-                        subtitle: Text(crops?.firstWhere((c) => c.id == t.cropId).name ?? ""),
-                      )),
+                      Builder(
+                        builder: (context) {
+                          final todayTasks = tasks!
+                              .where((t) => !t.isDone && _sameDay(t.dueDate, DateTime.now()))
+                              .toList();
+
+                          if (todayTasks.isEmpty) {
+                            return Padding(
+                              padding: EdgeInsets.symmetric(vertical: 16),
+                              child: Center(
+                                child: Text("No tasks for today 🌱", style: TextStyle(color: Colors.grey)),
+                              ),
+                            );
+                          }
+
+                          return Column(
+                            children: todayTasks.map((t) {
+                              final crop = crops?.firstWhere(
+                                    (c) => c.id == t.cropId,
+                                orElse: () => null as dynamic,
+                              );
+                              if (crop == null) return SizedBox.shrink();
+                              return Container(
+                                margin: EdgeInsets.only(bottom: 8),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                                child: Padding(
+                                  padding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                                  child: Row(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+
+                                      SizedBox(width: 12),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              '${t.type.label} ${crop.name}',
+                                              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF1C1F16)),
+                                            ),
+                                            SizedBox(height: 6),
+                                            Row(children: [
+                                              Container(
+                                                padding: EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                                                decoration: BoxDecoration(
+                                                  color: t.type.color.withValues(alpha: 0.15),
+                                                  borderRadius: BorderRadius.circular(6),
+                                                ),
+                                                child: Row(mainAxisSize: MainAxisSize.min, children: [
+                                                  Text(t.type.icon2, style: TextStyle(fontSize: 11)),
+                                                  SizedBox(width: 4),
+                                                  Text(
+                                                    crop.name.toUpperCase(),
+                                                    style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: t.type.color, letterSpacing: 0.5),
+                                                  ),
+                                                ]),
+                                              ),
+                                              SizedBox(width: 8),
+                                              Flexible(
+                                                child: Text(
+                                                  'Anytime today · ${crop.fieldName}',
+                                                  style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+                                                  overflow: TextOverflow.ellipsis,
+                                                ),
+                                              ),
+                                            ]),
+                                          ],
+                                        ),
+                                      ),
+                                      Text(t.type.icon2, style: TextStyle(fontSize: 18)),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            }).toList(),
+                          );
+                        },
+                      ),
 
 
 

@@ -13,9 +13,11 @@ class MainShell extends StatefulWidget {
 
 class _MainShellState extends State<MainShell> {
 
+  final _homeKey = GlobalKey<HomePageState>();
   int _selectedIndex = 0;
 
   void _onItemTapped (int index) {
+    if (index == 0) _homeKey.currentState?.refresh();
     setState(() {
       _selectedIndex = index;
     });
@@ -29,7 +31,7 @@ class _MainShellState extends State<MainShell> {
       body: IndexedStack(
         index: _selectedIndex,
         children: [
-          HomePage(onNavigateToTasks: () => setState(() { _selectedIndex = 2; })),
+          HomePage(key: _homeKey, onNavigateToTasks: () => setState(() { _selectedIndex = 2; })),
           CropsPage(),
           TasksPage(),
         ],

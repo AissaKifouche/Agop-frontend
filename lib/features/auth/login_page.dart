@@ -7,6 +7,8 @@ import 'package:agop/shared/widgets/agop_text_field.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'forgot_password_page.dart';
+
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
@@ -126,20 +128,10 @@ class _LoginPageState extends State<LoginPage> {
                             Text("remember me", style: TextStyle(color: Color(0xFF3F4942)),),
                             TextButton(
                               child: Text("Forgot password?", style: TextStyle(color: Color(0xFF0B613B)),),
-                              onPressed: (){
-                                //to handle later
-                                //
-                                //
-                                //
-                                //
-                                //
-                                //
-                                //
-                                //
-                                //
-                                //
-                                //don't forget
-                              },
+                                onPressed: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (_) => ForgotPasswordPage()),
+                                )
                             ),
                           ],
                         ),
