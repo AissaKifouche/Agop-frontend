@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'core/app_theme.dart';
 import 'features/auth/get_started_page.dart';
+import 'auth_gate.dart';
 
 /*void main() {
   runApp(
@@ -25,7 +26,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
 
       theme: AgopTheme.lightTheme,
-      home: GetStartedPage(),
+      home: AuthGate(),
 
     );
   }

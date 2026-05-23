@@ -35,7 +35,7 @@ class Crop {
     required this.growthStage,
 });
 
-  bool get needsImmediateAction => daysSinceWatered >= 3 || daysSinceFertilized >= 10;
+  bool get needsImmediateAction => daysSinceWatered >= 3 || daysSinceFertilized >= 14;
 
   int get daysSincePlanting => DateTime.now().difference(plantingDate).inDays + 1;
 

@@ -145,7 +145,7 @@ class _SignUpPageState extends State<SignUpPage> {
                         ),
                         SizedBox(height: 24,),
 
-                        Row(
+                        /*Row(
                           mainAxisAlignment: MainAxisAlignment.start,
                           children: [
                             SizedBox(width: 8,),
@@ -165,9 +165,9 @@ class _SignUpPageState extends State<SignUpPage> {
                             SizedBox(width: 8,),
                             Text("remember me", style: TextStyle(color: Color(0xFF3F4942)),),
                           ],
-                        ),
+                        ),*/
 
-                        SizedBox(height: 24,),
+                        //SizedBox(height: 24,),
 
                         //the button create account
                         SizedBox(

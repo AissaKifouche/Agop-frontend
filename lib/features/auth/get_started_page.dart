@@ -56,7 +56,7 @@ class GetStartedPage extends StatelessWidget {
 
                             // a space
                               SizedBox(
-                                height: 250,
+                                height: 350,
                               ),
 
                             //the text
@@ -70,7 +70,7 @@ class GetStartedPage extends StatelessWidget {
                                 ),
                               ),
                             ),
-                            Center(
+                            /*Center(
                               child: Text(
                                 "AI powered farming",
                                 style: TextStyle(
@@ -79,7 +79,7 @@ class GetStartedPage extends StatelessWidget {
                                   color: Colors.white,
                                 ),
                               ),
-                            ),
+                            ),*/
 
                             //a sized box to separate between the text and the button
                             SizedBox(

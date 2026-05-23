@@ -80,8 +80,8 @@ class _LoginPageState extends State<LoginPage> {
                         
                         //username field using the customised input field AgopTextField
                         AgopTextField(
-                            label: "e-mail",
-                            hintText: "enter your e-mail",
+                            label: "username",
+                            hintText: "enter your username",
                           controller: _identifierConroller,
                         ),
 

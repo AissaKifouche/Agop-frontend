@@ -4,21 +4,18 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 
 class ApiService {
-  static const String baseUrl = "http://10.5.1.205:8000";
-  //static const String baseUrl = "http://11.11(my pcs ip:8000"
+  static const String baseUrl = "https://agop-backend.onrender.com";
+  //static const String baseUrl = "http://10.0.2.2:8000";
 
   //auth
   static Future<Map<String, dynamic>> login(String email, String password) async {
     final res = await http.post(
       Uri.parse("$baseUrl/users/login"),
-      // 1. Remove "Content-Type: application/json"
-      // The http package will set it to "application/x-www-form-urlencoded" automatically
-      headers: {},
-      // 2. Send as a Map, NOT jsonEncode
-      body: {
-        "username": email, // FastAPI OAuth2 uses 'username' as the key
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode({
+        "username": email,
         "password": password,
-      },
+      }),
     );
 
     if (res.statusCode == 200) {

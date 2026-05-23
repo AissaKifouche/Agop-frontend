@@ -396,7 +396,7 @@ class CropsPageState extends State<CropsPage> {
                                 _cropStat(
                                   "${crop.daysSinceFertilized} days",
                                   "SINCE FERTILIZED",
-                                  crop.daysSinceFertilized >= 10
+                                  crop.daysSinceFertilized >= 14
                                       ? Colors.orange
                                       : Colors.black,
                                 ),
@@ -425,6 +425,26 @@ class CropsPageState extends State<CropsPage> {
                               ),
                               child: Text(
                                 "💧 Water needed today — ${(crop.area * 3600).toStringAsFixed(0)} L required",
+                                style: const TextStyle(fontSize: 14, color: Color(0xFF333333)),
+                              ),
+                            ),
+                          ],
+
+                          //to make a message to fertilize
+                          if (crop.daysSinceFertilized >= 14) ...[
+                            Divider(height: 1, color: Colors.grey.shade200),
+                            Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                              decoration: const BoxDecoration(
+                                color: Color(0xFFFFF3CD),
+                                borderRadius: BorderRadius.only(
+                                  bottomLeft: Radius.circular(16),
+                                  bottomRight: Radius.circular(16),
+                                ),
+                              ),
+                              child: Text(
+                                "🌿 Fertilizer needed — last applied ${crop.daysSinceFertilized} days ago",
                                 style: const TextStyle(fontSize: 14, color: Color(0xFF333333)),
                               ),
                             ),
