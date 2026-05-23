@@ -56,7 +56,7 @@ class GetStartedPage extends StatelessWidget {
 
                             // a space
                               SizedBox(
-                                height: 350,
+                                height: 300,
                               ),
 
                             //the text
